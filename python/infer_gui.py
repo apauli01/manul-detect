@@ -141,8 +141,27 @@ class InferenceGUI:
         # Tkinter setup
         self.root = tk.Tk()
         self.root.title("YOLO Inference GUI")
+        # keybindings: Right => next + infer, Left => prev
+        self.root.bind('<Right>', self._on_right)
+        self.root.bind('<Left>', self._on_left)
         self._build_ui()
         self.show_image()
+
+    def _on_right(self, event=None):
+        """Handle Right arrow: advance to next image (if any) and start inference."""
+        # move to next image if possible
+        if self.index < len(self.imgs) - 1:
+            self.index += 1
+            self.show_image()
+            # start inference in background
+            threading.Thread(target=self._run_infer, args=(self.imgs[self.index],), daemon=True).start()
+
+    def _on_left(self, event=None):
+        """Handle Left arrow: go to previous image."""
+        if self.index > 0:
+            self.index -= 1
+            self.show_image()
+            threading.Thread(target=self._run_infer, args=(self.imgs[self.index],), daemon=True).start()
 
     def _build_ui(self):
         frm = ttk.Frame(self.root)
